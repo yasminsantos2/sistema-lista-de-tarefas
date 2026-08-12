@@ -1,6 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse
-from app.rotas.tarefas import router as tarefas_router, listar_tarefas
+from typing import Annotated
+from app.rotas.tarefa import router as tarefas_router
+from app.banco_de_dados.tarefa_repository import TarefaRepositorio
+from app.dependencias import obter_tarefa_repositorio
 
 app = FastAPI(
     title="Sistema Lista de tarefas",
@@ -12,9 +15,12 @@ app.include_router(tarefas_router)
 
 
 @app.get("/")
-async def health_check():
+async def health_check(
+    repo: Annotated[TarefaRepositorio, Depends(obter_tarefa_repositorio)]
+):
     # Expor a lista de tarefas diretamente na raiz
-    return await listar_tarefas()
+    return await repo.listar_tarefas()
+
 
 @app.get("/front", response_class=HTMLResponse)
 async def front_page():

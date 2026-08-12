@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class Tarefa(BaseModel):
-    id: Optional[int] = None
+    id: int
     titulo: str
     descricao: str
 
