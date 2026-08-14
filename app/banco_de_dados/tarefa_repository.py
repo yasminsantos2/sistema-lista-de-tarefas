@@ -1,5 +1,6 @@
 from app.banco_de_dados.local import BancoDeDadosLocal
 from app.modelos.tarefa import Tarefa
+from app.modelos.tarefa import TarefaCriarAtualizar
 
 
 # Faz a ponte entre o banco (linhas SQL) e os objetos Tarefa.
@@ -44,3 +45,39 @@ class TarefaRepositorio:
                 titulo=linha[1],
                 descricao=linha[2]
             )
+
+    async def criar_tarefa(self, tarefa: TarefaCriarAtualizar) -> Tarefa:
+
+        with self.bd.conectar() as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "INSERT INTO tarefa (titulo, descricao) VALUES (?, ?)",
+                (tarefa.titulo, tarefa.descricao),
+            )
+            tarefa_id = cursor.lastrowid
+        return Tarefa(id=tarefa_id, titulo=tarefa.titulo, descricao=tarefa.descricao)
+
+
+    
+    async def atualizar_tarefa(self, tarefa_id: int, tarefa: TarefaCriarAtualizar) -> Tarefa | None:
+        with self.bd.conectar() as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "UPDATE tarefa SET titulo = ?, descricao = ? WHERE id = ?",
+                (tarefa.titulo, tarefa.descricao, tarefa_id)
+            )
+            rowcount = cursor.rowcount
+        if rowcount == 0:
+            return None
+        return Tarefa(id=tarefa_id, titulo=tarefa.titulo, descricao=tarefa.descricao)
+
+
+
+
+    async def deletar_tarefa(self, tarefa_id: int) -> bool:
+        with self.bd.conectar() as conexao:
+            cursor = conexao.cursor()
+            cursor.execute(
+                "DELETE FROM tarefa WHERE id = ?", (tarefa_id,)
+            )
+            return cursor.rowcount > 0
